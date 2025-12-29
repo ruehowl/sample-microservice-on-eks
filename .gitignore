@@ -1,0 +1,156 @@
+# ============================================
+# Temporary & Unnecessary Files
+# ============================================
+# Note: Essential files for evaluators/planners are KEPT in repo:
+#   - planning/ (automation scripts, documentation, Terraform modules)
+#   - .github/ (GitHub Actions workflows)
+#   - docs/ (candidate documentation)
+#   - assessment/ (assessment requirements and starter template)
+#   - README.md (main documentation)
+#
+# Only unnecessary/temporary files are ignored below.
+
+# Temporary candidate repository clones (created during automation, cleaned up after push)
+planning/principal-sre-assessment-*/
+planning/principal-sre-full-stack-assessment-*/
+
+# Test/example candidate repos (should be cleaned up)
+planning/*-test-*/
+planning/*-temp-*/
+planning/*-candidate-*/
+
+# ============================================
+# Development & Local Files
+# ============================================
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# ============================================
+# Terraform State & Secrets
+# ============================================
+
+# Terraform state files (should never be committed)
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+.terraform.lock.hcl
+terraform.tfvars
+*.tfvars
+*.tfvars.json
+**/.terraform/
+**/terraform.tfstate
+**/terraform.tfstate.*
+**/terraform.tfstate.backup
+
+# Terraform override files (local overrides)
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# ============================================
+# AWS Credentials & Secrets
+# ============================================
+
+# AWS credentials (NEVER commit these)
+.aws/
+aws-credentials
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+*.secret
+
+# ============================================
+# Language-Specific
+# ============================================
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+.coverage
+htmlcov/
+*.egg-info/
+dist/
+build/
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+.npm
+.eslintcache
+
+# ============================================
+# Logs & Temporary Files
+# ============================================
+
+# Logs
+*.log
+logs/
+*.log.*
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+*.backup
+*.old
+*.orig
+*.save
+
+# ============================================
+# Build & Output Files
+# ============================================
+
+# Build artifacts
+build/
+dist/
+out/
+target/
+bin/
+obj/
+*.o
+*.a
+*.lib
+*.dll
+*.exe
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
