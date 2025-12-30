@@ -1,3 +1,21 @@
+# ===== GITHUB OIDC PROVIDER =====
+
+# Get GitHub OIDC certificate thumbprint
+data "tls_certificate" "github" {
+  url = "https://token.actions.githubusercontent.com"
+}
+
+# Create GitHub OIDC Identity Provider
+resource "aws_iam_openid_connect_provider" "github" {
+  client_id_list  = ["sts.amazonaws.com"]
+  thumbprint_list = [data.tls_certificate.github.certificates[0].sha1_fingerprint]
+  url             = "https://token.actions.githubusercontent.com"
+
+  tags = {
+    Name = "${var.project_name}-github-oidc-provider"
+  }
+}
+
 # ===== CI/CD PIPELINE IAM ROLE =====
 
 resource "aws_iam_role" "cicd_role" {
@@ -7,10 +25,18 @@ resource "aws_iam_role" "cicd_role" {
     Version = "2012-10-17"
     Statement = [
       {
-        Action = "sts:AssumeRole"
+        Action = "sts:AssumeRoleWithWebIdentity"
         Effect = "Allow"
         Principal = {
-          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+          Federated = aws_iam_openid_connect_provider.github.arn
+        }
+        Condition = {
+          StringEquals = {
+            "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
+          }
+          StringLike = {
+            "token.actions.githubusercontent.com:sub" = "repo:SleekTechPteLtd-Assessments/principal-sre-assessment-rahul-varghese:*"
+          }
         }
       }
     ]
@@ -79,3 +105,4 @@ resource "aws_iam_role_policy" "cicd_eks_policy" {
     ]
   })
 }
+

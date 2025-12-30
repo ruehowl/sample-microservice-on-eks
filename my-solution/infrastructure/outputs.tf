@@ -13,23 +13,23 @@ output "vpc_cidr" {
 
 # Subnet Outputs
 output "public_subnet_id" {
-  description = "ID of the public subnet"
-  value       = aws_subnet.public.id
+  description = "ID of the public subnet 1"
+  value       = aws_subnet.public_1.id
 }
 
 output "public_subnet_cidr" {
-  description = "CIDR block of the public subnet"
-  value       = aws_subnet.public.cidr_block
+  description = "CIDR block of the public subnet 1"
+  value       = aws_subnet.public_1.cidr_block
 }
 
 output "private_subnet_id" {
-  description = "ID of the private subnet"
-  value       = aws_subnet.private.id
+  description = "ID of the private subnet 1"
+  value       = aws_subnet.private_1.id
 }
 
 output "private_subnet_cidr" {
-  description = "CIDR block of the private subnet"
-  value       = aws_subnet.private.cidr_block
+  description = "CIDR block of the private subnet 1"
+  value       = aws_subnet.private_1.cidr_block
 }
 
 # Internet Gateway Outputs
@@ -40,13 +40,13 @@ output "internet_gateway_id" {
 
 # NAT Gateway Outputs
 output "nat_gateway_id" {
-  description = "ID of the NAT Gateway"
-  value       = aws_nat_gateway.main.id
+  description = "ID of the NAT Gateway 1"
+  value       = aws_nat_gateway.main_1.id
 }
 
 output "nat_gateway_eip" {
-  description = "Elastic IP address of the NAT Gateway"
-  value       = aws_eip.nat.public_ip
+  description = "Elastic IP address of the NAT Gateway 1"
+  value       = aws_eip.nat_1.public_ip
 }
 
 # Route Table Outputs
@@ -56,8 +56,8 @@ output "public_route_table_id" {
 }
 
 output "private_route_table_id" {
-  description = "ID of the private route table"
-  value       = aws_route_table.private.id
+  description = "ID of the private route table 1"
+  value       = aws_route_table.private_1.id
 }
 
 # ECR Repository Outputs
@@ -174,6 +174,21 @@ output "cicd_role_name" {
 output "aws_account_id" {
   description = "AWS account ID"
   value       = data.aws_caller_identity.current.account_id
+}
+
+output "terraform_cicd_role_arn" {
+  description = "ARN of the Terraform CI/CD IAM role for GitHub Actions"
+  value       = aws_iam_role.terraform_cicd_role.arn
+}
+
+output "terraform_cicd_role_name" {
+  description = "Name of the Terraform CI/CD IAM role"
+  value       = aws_iam_role.terraform_cicd_role.name
+}
+
+output "github_oidc_provider_arn" {
+  description = "ARN of the GitHub OIDC provider"
+  value       = aws_iam_openid_connect_provider.github.arn
 }
 
 # CloudWatch Log Group Outputs

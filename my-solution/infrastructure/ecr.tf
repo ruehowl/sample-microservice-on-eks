@@ -1,6 +1,6 @@
 # ECR Repository for container images
 resource "aws_ecr_repository" "app" {
-  name                 = "${var.project_name}"
+  name                 = "${var.project_name}-${var.candidate_name}"
   image_tag_mutability = "MUTABLE"
 
   image_scanning_configuration {

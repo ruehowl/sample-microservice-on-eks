@@ -52,8 +52,8 @@ resource "aws_security_group" "app" {
     from_port   = 0
     to_port     = 65535
     protocol    = "tcp"
-    cidr_blocks = [var.private_subnet_cidr]
-    description = "Allow all internal traffic within private subnet"
+    cidr_blocks = [var.private_subnet_cidr_1, var.private_subnet_cidr_2]
+    description = "Allow all internal traffic within private subnets"
   }
 
   egress {
