@@ -15,7 +15,7 @@ terraform {
   # Configure S3 backend for state
   backend "s3" {
     bucket         = "rahul-varghese-sleek-task-terraform-state-bucket"
-    key            = "sre-assessment/terraform.tfstate"
+    key            = "sre-assessment/github-cicd/terraform.tfstate"
     region         = "us-east-1"
     dynamodb_table = "terraform-state-lock"
   }

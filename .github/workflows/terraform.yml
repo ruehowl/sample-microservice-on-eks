@@ -1,5 +1,6 @@
 # GitHub Actions workflow for Terraform CI/CD
-# Handles terraform plan, apply, and destroy operations
+# Handles terraform plan, apply, and destroy operations for modular infrastructure
+# Infrastructure is split into: shared, eks, github-cicd, document-service
 
 name: Terraform
 
@@ -24,9 +25,18 @@ on:
         default: 'plan'
         type: choice
         options:
-          - plan
-          - apply
-          - destroy
+          - vpc-plan
+          - vpc-apply
+          - vpc-destroy
+          - eks-plan
+          - eks-apply
+          - eks-destroy
+          - github-cicd-plan
+          - github-cicd-apply
+          - github-cicd-destroy
+          - document-service-plan
+          - document-service-apply
+          - document-service-destroy
 
 env:
   AWS_REGION: us-east-1
@@ -34,10 +44,11 @@ env:
   TF_VERSION: 1.5.0
 
 jobs:
-  terraform-plan:
-    name: Terraform Plan
+  # ==================== VPC INFRASTRUCTURE ====================
+  vpc-plan:
+    name: VPC - Terraform Plan
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'pull_request' || github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && (github.event.inputs.action == 'vpc-plan' || github.event.inputs.action == 'vpc-apply' || github.event.inputs.action == 'vpc-destroy'))
     
     steps:
       - name: Checkout code
@@ -57,26 +68,26 @@ jobs:
       
       - name: Terraform Init
         run: |
-          cd my-solution/infrastructure
+          cd my-solution/infrastructure/vpc
           terraform init
       
       - name: Terraform Plan
         run: |
-          cd my-solution/infrastructure
+          cd my-solution/infrastructure/vpc
           terraform plan -no-color -out=tfplan
       
       - name: Upload Terraform Plan
         uses: actions/upload-artifact@v4
         with:
-          name: tfplan
-          path: my-solution/infrastructure/tfplan
+          name: vpc-tfplan
+          path: my-solution/infrastructure/vpc/tfplan
           retention-days: 1
 
-  terraform-apply:
-    name: Terraform Apply
+  vpc-apply:
+    name: VPC - Terraform Apply
     runs-on: ubuntu-latest
-    needs: [terraform-plan]
-    if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply')
+    needs: [vpc-plan]
+    if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'vpc-apply')
     
     steps:
       - name: Checkout code
@@ -97,23 +108,23 @@ jobs:
       - name: Download Terraform Plan
         uses: actions/download-artifact@v4
         with:
-          name: tfplan
-          path: my-solution/infrastructure/
+          name: vpc-tfplan
+          path: my-solution/infrastructure/vpc/
       
       - name: Terraform Init
         run: |
-          cd my-solution/infrastructure
+          cd my-solution/infrastructure/vpc
           terraform init
       
       - name: Terraform Apply
         run: |
-          cd my-solution/infrastructure
+          cd my-solution/infrastructure/vpc
           terraform apply -no-color -auto-approve tfplan
 
-  terraform-destroy:
-    name: Terraform Destroy
+  vpc-destroy:
+    name: VPC - Terraform Destroy
     runs-on: ubuntu-latest
-    if: github.event.inputs.action == 'destroy'
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'vpc-destroy'
     
     steps:
       - name: Checkout code
@@ -133,10 +144,380 @@ jobs:
       
       - name: Terraform Init
         run: |
-          cd my-solution/infrastructure
+          cd my-solution/infrastructure/vpc
           terraform init
       
       - name: Terraform Destroy
         run: |
-          cd my-solution/infrastructure
+          cd my-solution/infrastructure/vpc
+          terraform destroy -no-color -auto-approve
+
+  # ==================== EKS INFRASTRUCTURE ====================
+  eks-plan:
+    name: EKS - Terraform Plan
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && (github.event.inputs.action == 'eks-plan' || github.event.inputs.action == 'eks-apply' || github.event.inputs.action == 'eks-destroy'))
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+      
+      - name: Terraform Init
+        run: |
+          cd my-solution/infrastructure/eks
+          terraform init
+      
+      - name: Terraform Plan
+        run: |
+          cd my-solution/infrastructure/eks
+          terraform plan -no-color -out=tfplan
+      
+      - name: Upload Terraform Plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: eks-tfplan
+          path: my-solution/infrastructure/eks/tfplan
+          retention-days: 1
+
+  eks-apply:
+    name: EKS - Terraform Apply
+    runs-on: ubuntu-latest
+    needs: [eks-plan]
+    if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'eks-apply')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+      
+      - name: Download Terraform Plan
+        uses: actions/download-artifact@v4
+        with:
+          name: eks-tfplan
+          path: my-solution/infrastructure/eks/
+      
+      - name: Terraform Init
+        run: |
+          cd my-solution/infrastructure/eks
+          terraform init
+      
+      - name: Terraform Apply
+        run: |
+          cd my-solution/infrastructure/eks
+          terraform apply -no-color -auto-approve tfplan
+
+  eks-destroy:
+    name: EKS - Terraform Destroy
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'eks-destroy'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+      
+      - name: Terraform Init
+        run: |
+          cd my-solution/infrastructure/eks
+          terraform init
+      
+      - name: Terraform Destroy
+        run: |
+          cd my-solution/infrastructure/eks
+          terraform destroy -no-color -auto-approve
+
+  # ==================== GITHUB CICD INFRASTRUCTURE ====================
+  github-cicd-plan:
+    name: GitHub CICD - Terraform Plan
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && (github.event.inputs.action == 'github-cicd-plan' || github.event.inputs.action == 'github-cicd-apply' || github.event.inputs.action == 'github-cicd-destroy'))
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+      
+      - name: Terraform Init
+        run: |
+          cd my-solution/infrastructure/github-cicd
+          terraform init
+      
+      - name: Terraform Plan
+        run: |
+          cd my-solution/infrastructure/github-cicd
+          terraform plan -no-color -out=tfplan
+      
+      - name: Upload Terraform Plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: github-cicd-tfplan
+          path: my-solution/infrastructure/github-cicd/tfplan
+          retention-days: 1
+
+  github-cicd-apply:
+    name: GitHub CICD - Terraform Apply
+    runs-on: ubuntu-latest
+    needs: [github-cicd-plan]
+    if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'github-cicd-apply')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+      
+      - name: Download Terraform Plan
+        uses: actions/download-artifact@v4
+        with:
+          name: github-cicd-tfplan
+          path: my-solution/infrastructure/github-cicd/
+      
+      - name: Terraform Init
+        run: |
+          cd my-solution/infrastructure/github-cicd
+          terraform init
+      
+      - name: Terraform Apply
+        run: |
+          cd my-solution/infrastructure/github-cicd
+          terraform apply -no-color -auto-approve tfplan
+
+  github-cicd-destroy:
+    name: GitHub CICD - Terraform Destroy
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'github-cicd-destroy'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+      
+      - name: Terraform Init
+        run: |
+          cd my-solution/infrastructure/github-cicd
+          terraform init
+      
+      - name: Terraform Destroy
+        run: |
+          cd my-solution/infrastructure/github-cicd
+          terraform destroy -no-color -auto-approve
+
+  # ==================== DOCUMENT SERVICE INFRASTRUCTURE ====================
+  document-service-plan:
+    name: Document Service - Terraform Plan
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && (github.event.inputs.action == 'document-service-plan' || github.event.inputs.action == 'document-service-apply' || github.event.inputs.action == 'document-service-destroy'))
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+      
+      - name: Terraform Init
+        run: |
+          cd my-solution/infrastructure/document-service
+          terraform init
+      
+      - name: Terraform Plan
+        run: |
+          cd my-solution/infrastructure/document-service
+          terraform plan -no-color -out=tfplan
+      
+      - name: Upload Terraform Plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: document-service-tfplan
+          path: my-solution/infrastructure/document-service/tfplan
+          retention-days: 1
+
+  document-service-apply:
+    name: Document Service - Terraform Apply
+    runs-on: ubuntu-latest
+    needs: [document-service-plan]
+    if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'document-service-apply')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+      
+      - name: Download Terraform Plan
+        uses: actions/download-artifact@v4
+        with:
+          name: document-service-tfplan
+          path: my-solution/infrastructure/document-service/
+      
+      - name: Terraform Init
+        run: |
+          cd my-solution/infrastructure/document-service
+          terraform init
+      
+      - name: Terraform Apply
+        run: |
+          cd my-solution/infrastructure/document-service
+          terraform apply -no-color -auto-approve tfplan
+
+  document-service-destroy:
+    name: Document Service - Terraform Destroy
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'document-service-destroy'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+      
+      - name: Terraform Init
+        run: |
+          cd my-solution/infrastructure/document-service
+          terraform init
+      
+      - name: Terraform Destroy
+        run: |
+          cd my-solution/infrastructure/document-service
+          terraform destroy -no-color -auto-approve
+
+  # ==================== DESTROY ALL (Combined) ====================
+  terraform-destroy-all:
+    name: Terraform Destroy All
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'destroy-all'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+      
+      - name: Destroy Document Service
+        run: |
+          cd my-solution/infrastructure/document-service
+          terraform init
+          terraform destroy -no-color -auto-approve
+      
+      - name: Destroy GitHub CICD
+        run: |
+          cd my-solution/infrastructure/github-cicd
+          terraform init
+          terraform destroy -no-color -auto-approve
+      
+      - name: Destroy EKS
+        run: |
+          cd my-solution/infrastructure/eks
+          terraform init
+          terraform destroy -no-color -auto-approve
+      
+      - name: Destroy VPC
+        run: |
+          cd my-solution/infrastructure/vpc
+          terraform init
           terraform destroy -no-color -auto-approve

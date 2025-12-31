@@ -1,14 +1,5 @@
 # ===== CLOUDWATCH LOG GROUPS =====
 
-# CloudWatch Log Group for EKS Cluster Logs
-resource "aws_cloudwatch_log_group" "eks_cluster" {
-  name              = "/aws/eks/${var.project_name}-eks-cluster/cluster"
-  retention_in_days = 7
-
-  tags = {
-    Name = "${var.project_name}-eks-cluster-logs"
-  }
-}
 
 # CloudWatch Log Group for Application Logs
 resource "aws_cloudwatch_log_group" "app" {
@@ -108,54 +99,8 @@ resource "aws_cloudwatch_metric_alarm" "alb_response_time" {
   treat_missing_data  = "notBreaching"
 
   dimensions = {
-    LoadBalancer = aws_lb.main.arn_suffix
+    LoadBalancer = local.alb_arn_suffix
   }
-
-  tags = {
-    Name = "${var.project_name}-alb-response-time"
-  }
-}
-
-# Alarm for ALB 5xx Errors
-resource "aws_cloudwatch_metric_alarm" "alb_5xx_errors" {
-  alarm_name          = "${var.project_name}-alb-5xx-errors"
-  comparison_operator = "GreaterThanThreshold"
-  evaluation_periods  = 1
-  metric_name         = "HTTPCode_Target_5XX_Count"
-  namespace           = "AWS/ApplicationELB"
-  period              = 300
-  statistic           = "Sum"
-  threshold           = 10
-  alarm_description   = "Alert when ALB receives more than 10 5xx errors in 5 minutes"
-  treat_missing_data  = "notBreaching"
-
-  dimensions = {
-    LoadBalancer = aws_lb.main.arn_suffix
-  }
-
-  tags = {
-    Name = "${var.project_name}-alb-5xx-errors"
-  }
-}
-
-# Alarm for Unhealthy Targets
-resource "aws_cloudwatch_metric_alarm" "alb_unhealthy_hosts" {
-  alarm_name          = "${var.project_name}-alb-unhealthy-hosts"
-  comparison_operator = "GreaterThanOrEqualToThreshold"
-  evaluation_periods  = 2
-  metric_name         = "UnHealthyHostCount"
-  namespace           = "AWS/ApplicationELB"
-  period              = 300
-  statistic           = "Average"
-  threshold           = 1
-  alarm_description   = "Alert when there are unhealthy targets"
-  treat_missing_data  = "notBreaching"
-
-  dimensions = {
-    LoadBalancer = aws_lb.main.arn_suffix
-    TargetGroup  = aws_lb_target_group.app.arn_suffix
-  }
-
   tags = {
     Name = "${var.project_name}-alb-unhealthy-hosts"
   }
@@ -175,7 +120,7 @@ resource "aws_cloudwatch_metric_alarm" "eks_failed_nodes" {
   treat_missing_data  = "notBreaching"
 
   dimensions = {
-    ClusterName = aws_eks_cluster.main.name
+    ClusterName = local.eks_cluster_name
   }
 
   tags = {

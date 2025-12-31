@@ -66,7 +66,7 @@ resource "aws_iam_role_policy" "cicd_ecr_policy" {
           "ecr:CompleteLayerUpload",
           "ecr:GetAuthorizationToken"
         ]
-        Resource = aws_ecr_repository.app.arn
+        Resource = local.ecr_repository_arn
       },
       {
         Effect = "Allow"
@@ -93,14 +93,14 @@ resource "aws_iam_role_policy" "cicd_eks_policy" {
           "eks:DescribeCluster",
           "eks:ListClusters"
         ]
-        Resource = aws_eks_cluster.main.arn
+        Resource = local.eks_cluster_arn
       },
       {
         Effect = "Allow"
         Action = [
           "sts:AssumeRole"
         ]
-        Resource = aws_iam_role.app_service_account.arn
+        Resource = local.app_service_account_arn
       }
     ]
   })

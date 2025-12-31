@@ -1,7 +1,7 @@
 # ElastiCache Subnet Group
 resource "aws_elasticache_subnet_group" "main" {
   name       = "${var.project_name}-subnet-group"
-  subnet_ids = [aws_subnet.private_1.id, aws_subnet.private_2.id]
+  subnet_ids = [local.private_subnet_1_id, local.private_subnet_2_id]
 
   tags = {
     Name = "${var.project_name}-elasticache-subnet-group"
@@ -18,7 +18,7 @@ resource "aws_elasticache_cluster" "main" {
   engine_version      = "7.0"
   port                = 6379
   subnet_group_name   = aws_elasticache_subnet_group.main.name
-  security_group_ids  = [aws_security_group.elasticache.id]
+  security_group_ids  = [local.elasticache_security_group_id]
 
   # Automatic backups
   snapshot_retention_limit = 5

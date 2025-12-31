@@ -2,7 +2,7 @@
 resource "aws_security_group" "alb" {
   name        = "${var.project_name}-alb-sg"
   description = "Security group for Application Load Balancer"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = local.vpc_id
 
   ingress {
     from_port   = var.alb_port
@@ -38,7 +38,7 @@ resource "aws_security_group" "alb" {
 resource "aws_security_group" "app" {
   name        = "${var.project_name}-app-sg"
   description = "Security group for application pods"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = local.vpc_id
 
   ingress {
     from_port       = var.app_port
@@ -73,7 +73,7 @@ resource "aws_security_group" "app" {
 resource "aws_security_group" "elasticache" {
   name        = "${var.project_name}-elasticache-sg"
   description = "Security group for ElastiCache Redis"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = local.vpc_id
 
   ingress {
     from_port       = 6379
