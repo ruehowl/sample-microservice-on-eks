@@ -15,14 +15,9 @@ data "aws_iam_role" "app_service_account" {
   name = "${var.project_name}-app-sa-role"
 }
 
-# Get ECR repository by name
-data "aws_ecr_repository" "app" {
-  name = "${var.project_name}-${var.candidate_name}"
-}
-
 # Local references to infrastructure resources
 locals {
   app_service_account_arn = data.aws_iam_role.app_service_account.arn
-  ecr_repository_arn      = data.aws_ecr_repository.app.arn
+  ecr_repository_arn      = "arn:aws:ecr:${var.aws_region}:${data.aws_caller_identity.current.account_id}:repository/*"
   eks_cluster_arn         = data.aws_eks_cluster.main.arn
 }

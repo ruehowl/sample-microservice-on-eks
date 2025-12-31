@@ -52,7 +52,7 @@ resource "aws_security_group" "app" {
     from_port   = 0
     to_port     = 65535
     protocol    = "tcp"
-    cidr_blocks = [var.private_subnet_cidr_1, var.private_subnet_cidr_2]
+    cidr_blocks = [local.private_subnet_1_cidr, local.private_subnet_2_cidr]
     description = "Allow all internal traffic within private subnets"
   }
 

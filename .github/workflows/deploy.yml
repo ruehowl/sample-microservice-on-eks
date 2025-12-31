@@ -8,10 +8,16 @@ on:
     branches:
       - main
       - master
+    paths:
+      - 'my-solution/app/**'
+      - 'my-solution/kubernetes/**'
   pull_request:
     branches:
       - main
       - master
+    paths:
+      - 'my-solution/app/**'
+      - 'my-solution/kubernetes/**'
 
 env:
   AWS_REGION: us-east-1

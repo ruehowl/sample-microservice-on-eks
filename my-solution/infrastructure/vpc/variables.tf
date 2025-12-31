@@ -1,5 +1,3 @@
-# Variable definitions for Terraform configuration
-
 variable "aws_region" {
   description = "AWS region for resources"
   type        = string
@@ -54,67 +52,4 @@ variable "private_subnet_cidr_2" {
   default     = "10.0.11.0/24"
 }
 
-# EKS Configuration
-variable "kubernetes_version" {
-  description = "Kubernetes version for EKS cluster"
-  type        = string
-  default     = "1.32"
-}
-
-variable "node_group_desired_size" {
-  description = "Desired number of worker nodes"
-  type        = number
-  default     = 1
-}
-
-variable "node_group_min_size" {
-  description = "Minimum number of worker nodes"
-  type        = number
-  default     = 1
-}
-
-variable "node_group_max_size" {
-  description = "Maximum number of worker nodes"
-  type        = number
-  default     = 2
-}
-
-variable "node_instance_types" {
-  description = "Instance types for EKS worker nodes (using t3.medium for cost savings)"
-  type        = list(string)
-  default     = ["t3.medium"]
-}
-
-variable "use_spot_instances" {
-  description = "Use Spot Instances for EKS nodes (saves ~70% on compute costs)"
-  type        = bool
-  default     = true
-}
-
-# ALB Configuration
-variable "alb_port" {
-  description = "Port for ALB listener"
-  type        = number
-  default     = 80
-}
-
-variable "app_port" {
-  description = "Port for application container"
-  type        = number
-  default     = 8000
-}
-
-# Storage Configuration
-variable "storage_type" {
-  description = "Type of storage to use: 'dynamodb' or 's3'"
-  type        = string
-  default     = "dynamodb"
-}
-
-# Cache Configuration
-variable "elasticache_node_type" {
-  description = "Node type for ElastiCache Redis (cache.t3.micro for cost savings)"
-  type        = string
-  default     = "cache.t3.micro"
-}
 

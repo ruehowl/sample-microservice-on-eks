@@ -60,18 +60,26 @@ resource "aws_iam_role_policy" "cicd_ecr_policy" {
         Action = [
           "ecr:GetDownloadUrlForLayer",
           "ecr:BatchGetImage",
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:DescribeImages",
+          "ecr:DescribeRepositories",
+          "ecr:ListImages",
           "ecr:PutImage",
           "ecr:InitiateLayerUpload",
           "ecr:UploadLayerPart",
           "ecr:CompleteLayerUpload",
-          "ecr:GetAuthorizationToken"
+          "ecr:TagResource",
+          "ecr:UntagResource"
         ]
         Resource = local.ecr_repository_arn
       },
       {
         Effect = "Allow"
         Action = [
-          "ecr:GetAuthorizationToken"
+          "ecr:GetAuthorizationToken",
+          "ecr:CreateRepository",
+          "ecr:DeleteRepository",
+          "ecr:DescribeRegistry"
         ]
         Resource = "*"
       }
