@@ -1,38 +1,16 @@
-# Default values for document-service
-# TODO: Customize these values
+# Minimal, renderable defaults for document-service
 
-replicaCount: 2
+replicaCount: 1
 
 image:
   repository: document-service
   pullPolicy: IfNotPresent
   tag: "latest"
 
-imagePullSecrets: []
-nameOverride: ""
-fullnameOverride: ""
-
 serviceAccount:
-  # Specifies whether a service account should be created
   create: true
-  # Annotations to add to the service account (for EKS IRSA)
   annotations: {}
-  # The name of the service account to use
   name: ""
-
-podAnnotations: {}
-
-podSecurityContext:
-  runAsNonRoot: true
-  runAsUser: 1000
-  fsGroup: 1000
-
-securityContext:
-  allowPrivilegeEscalation: false
-  readOnlyRootFilesystem: false
-  capabilities:
-    drop:
-    - ALL
 
 service:
   type: ClusterIP
@@ -41,47 +19,23 @@ service:
 
 ingress:
   enabled: false
-  className: ""
-  annotations: {}
-  hosts:
-    - host: document-service.local
-      paths:
-        - path: /
-          pathType: Prefix
-  tls: []
-
-resources:
-  limits:
-    cpu: 500m
-    memory: 512Mi
-  requests:
-    cpu: 250m
-    memory: 256Mi
 
 autoscaling:
   enabled: false
-  minReplicas: 2
-  maxReplicas: 10
-  targetCPUUtilizationPercentage: 80
-  targetMemoryUtilizationPercentage: 80
 
-nodeSelector: {}
+podSecurityContext: {}
 
-tolerations: []
+securityContext: {}
 
-affinity: {}
+resources: {}
 
-# Application configuration
 config:
   port: 8000
   awsRegion: "us-east-1"
-  storageType: "s3"  # s3, dynamodb, or rds
+  storageType: "s3"
   storageBucket: "document-service-storage"
-  cacheHost: "elasticache-redis-endpoint"
+  cacheHost: ""
   cachePort: 6379
-
-# Secrets (reference AWS Secrets Manager or Kubernetes secrets)
-secrets: {}
 
 probes:
   liveness:

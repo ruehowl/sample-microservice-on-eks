@@ -4,5 +4,17 @@ serviceAccount:
   annotations:
     "eks.amazonaws.com/role-arn": "arn:aws:iam::306024784101:role/document-service-app-sa-role"
 
+ingress:
+  enabled: true
+  className: alb
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+  hosts:
+    - host: document-service-dev.local
+      paths:
+        - path: /
+          pathType: Prefix
+
 config:
   storageBucket: "rahul-varghese-document-service-dev-storage"
