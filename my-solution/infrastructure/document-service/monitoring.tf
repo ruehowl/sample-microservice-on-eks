@@ -11,16 +11,6 @@ resource "aws_cloudwatch_log_group" "app" {
   }
 }
 
-# CloudWatch Log Group for ALB Logs
-resource "aws_cloudwatch_log_group" "alb" {
-  name              = "/aws/alb/${var.project_name}-alb"
-  retention_in_days = 7
-
-  tags = {
-    Name = "${var.project_name}-alb-logs"
-  }
-}
-
 # CloudWatch Log Group for ElastiCache
 resource "aws_cloudwatch_log_group" "elasticache" {
   name              = "/aws/elasticache/${var.project_name}-redis"
@@ -38,23 +28,6 @@ resource "aws_cloudwatch_dashboard" "main" {
 
   dashboard_body = jsonencode({
     widgets = [
-      {
-        type = "metric"
-        properties = {
-          metrics = [
-            ["AWS/ApplicationELB", "TargetResponseTime", { stat = "Average" }],
-            [".", "RequestCount", { stat = "Sum" }],
-            [".", "HTTPCode_Target_2XX_Count", { stat = "Sum" }],
-            [".", "HTTPCode_Target_5XX_Count", { stat = "Sum" }],
-            [".", "HealthyHostCount", { stat = "Average" }],
-            [".", "UnHealthyHostCount", { stat = "Average" }],
-          ]
-          period = 300
-          stat   = "Average"
-          region = var.aws_region
-          title  = "ALB Metrics"
-        }
-      },
       {
         type = "log"
         properties = {
@@ -84,27 +57,6 @@ resource "aws_cloudwatch_dashboard" "main" {
 }
 
 # ===== CLOUDWATCH ALARMS =====
-
-# Alarm for ALB Target Response Time
-resource "aws_cloudwatch_metric_alarm" "alb_response_time" {
-  alarm_name          = "${var.project_name}-alb-response-time-high"
-  comparison_operator = "GreaterThanThreshold"
-  evaluation_periods  = 2
-  metric_name         = "TargetResponseTime"
-  namespace           = "AWS/ApplicationELB"
-  period              = 300
-  statistic           = "Average"
-  threshold           = 0.5 # 500ms
-  alarm_description   = "Alert when ALB response time is high"
-  treat_missing_data  = "notBreaching"
-
-  dimensions = {
-    LoadBalancer = local.alb_arn_suffix
-  }
-  tags = {
-    Name = "${var.project_name}-alb-unhealthy-hosts"
-  }
-}
 
 # Alarm for EKS Node Issues
 resource "aws_cloudwatch_metric_alarm" "eks_failed_nodes" {

@@ -1,51 +1,16 @@
-# ALB Security Group
-resource "aws_security_group" "alb" {
-  name        = "${var.project_name}-alb-sg"
-  description = "Security group for Application Load Balancer"
-  vpc_id      = local.vpc_id
-
-  ingress {
-    from_port   = var.alb_port
-    to_port     = var.alb_port
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "Allow inbound HTTP traffic"
-  }
-
-  # Allow HTTPS for future use
-  ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "Allow inbound HTTPS traffic"
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "Allow all outbound traffic"
-  }
-
-  tags = {
-    Name = "${var.project_name}-alb-sg"
-  }
-}
-
 # Application Security Group
 resource "aws_security_group" "app" {
+
   name        = "${var.project_name}-app-sg"
   description = "Security group for application pods"
   vpc_id      = local.vpc_id
 
   ingress {
-    from_port       = var.app_port
-    to_port         = var.app_port
-    protocol        = "tcp"
-    security_groups = [aws_security_group.alb.id]
-    description     = "Allow traffic from ALB"
+    from_port   = var.app_port
+    to_port     = var.app_port
+    protocol    = "tcp"
+    cidr_blocks = [data.aws_vpc.main.cidr_block]
+    description = "Allow traffic from within the VPC"
   }
 
   ingress {
@@ -71,6 +36,7 @@ resource "aws_security_group" "app" {
 
 # ElastiCache Security Group
 resource "aws_security_group" "elasticache" {
+
   name        = "${var.project_name}-elasticache-sg"
   description = "Security group for ElastiCache Redis"
   vpc_id      = local.vpc_id

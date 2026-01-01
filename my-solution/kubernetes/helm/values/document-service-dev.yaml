@@ -1,5 +1,15 @@
 # Overrides for document-service (dev)
 
+replicaCount: 2
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+
 serviceAccount:
   annotations:
     "eks.amazonaws.com/role-arn": "arn:aws:iam::306024784101:role/document-service-app-sa-role"

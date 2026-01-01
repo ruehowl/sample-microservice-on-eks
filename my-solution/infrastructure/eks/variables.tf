@@ -61,7 +61,7 @@ variable "use_spot_instances" {
   default     = false
 }
 
-# ALB Configuration
+# ALB / Application Ports (used by security groups)
 variable "alb_port" {
   description = "Port for ALB listener"
   type        = number

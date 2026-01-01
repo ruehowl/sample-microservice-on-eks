@@ -21,33 +21,6 @@ output "eks_cluster_version" {
   value       = aws_eks_cluster.main.version
 }
 
-# ALB Outputs
-output "alb_arn" {
-  description = "ARN of the Application Load Balancer"
-  value       = aws_lb.main.arn
-}
-
-output "alb_arn_suffix" {
-  description = "ARN suffix of the ALB for CloudWatch dimensions"
-  value       = aws_lb.main.arn_suffix
-}
-
-output "alb_dns_name" {
-  description = "DNS name of the ALB"
-  value       = aws_lb.main.dns_name
-}
-
-# Target Group Outputs
-output "target_group_arn" {
-  description = "ARN of the target group"
-  value       = aws_lb_target_group.app.arn
-}
-
-output "target_group_arn_suffix" {
-  description = "ARN suffix of the target group for CloudWatch dimensions"
-  value       = aws_lb_target_group.app.arn_suffix
-}
-
 # IAM Role Outputs
 output "eks_cluster_role_arn" {
   description = "IAM role ARN for the EKS cluster"
@@ -78,20 +51,4 @@ output "alb_controller_role_arn" {
 output "vpc_id" {
   description = "VPC ID where the EKS cluster runs"
   value       = local.vpc_id
-}
-
-# Security Group Outputs
-output "alb_security_group_id" {
-  description = "Security group ID for the ALB"
-  value       = aws_security_group.alb.id
-}
-
-output "app_security_group_id" {
-  description = "Security group ID for the application"
-  value       = aws_security_group.app.id
-}
-
-output "elasticache_security_group_id" {
-  description = "Security group ID for ElastiCache"
-  value       = aws_security_group.elasticache.id
 }
