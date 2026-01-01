@@ -1,10 +1,10 @@
 # ===== EKS CLUSTER =====
 
 resource "aws_eks_cluster" "main" {
-  name            = "${var.project_name}-eks-cluster"
-  role_arn        = aws_iam_role.eks_cluster_role.arn
-  version         = var.kubernetes_version
-  
+  name     = "${var.project_name}-eks-cluster"
+  role_arn = aws_iam_role.eks_cluster_role.arn
+  version  = var.kubernetes_version
+
   vpc_config {
     subnet_ids              = [local.public_subnet_1_id, local.public_subnet_2_id, local.private_subnet_1_id, local.private_subnet_2_id]
     endpoint_private_access = true
@@ -63,21 +63,21 @@ resource "aws_eks_node_group" "main" {
 
 # Get latest addon versions
 data "aws_eks_addon_version" "vpc_cni" {
-  addon_name             = "vpc-cni"
-  kubernetes_version     = aws_eks_cluster.main.version
-  most_recent            = true
+  addon_name         = "vpc-cni"
+  kubernetes_version = aws_eks_cluster.main.version
+  most_recent        = true
 }
 
 data "aws_eks_addon_version" "coredns" {
-  addon_name             = "coredns"
-  kubernetes_version     = aws_eks_cluster.main.version
-  most_recent            = true
+  addon_name         = "coredns"
+  kubernetes_version = aws_eks_cluster.main.version
+  most_recent        = true
 }
 
 data "aws_eks_addon_version" "kube_proxy" {
-  addon_name             = "kube-proxy"
-  kubernetes_version     = aws_eks_cluster.main.version
-  most_recent            = true
+  addon_name         = "kube-proxy"
+  kubernetes_version = aws_eks_cluster.main.version
+  most_recent        = true
 }
 
 # VPC CNI Add-on for pod networking
@@ -96,9 +96,9 @@ resource "aws_eks_addon" "vpc_cni" {
 
 # CoreDNS Add-on for service discovery
 resource "aws_eks_addon" "coredns" {
-  cluster_name    = aws_eks_cluster.main.name
-  addon_name      = "coredns"
-  addon_version   = data.aws_eks_addon_version.coredns.version
+  cluster_name  = aws_eks_cluster.main.name
+  addon_name    = "coredns"
+  addon_version = data.aws_eks_addon_version.coredns.version
 
   tags = {
     Name = "${var.project_name}-coredns"
@@ -109,9 +109,9 @@ resource "aws_eks_addon" "coredns" {
 
 # kube-proxy Add-on for networking
 resource "aws_eks_addon" "kube_proxy" {
-  cluster_name    = aws_eks_cluster.main.name
-  addon_name      = "kube-proxy"
-  addon_version   = data.aws_eks_addon_version.kube_proxy.version
+  cluster_name  = aws_eks_cluster.main.name
+  addon_name    = "kube-proxy"
+  addon_version = data.aws_eks_addon_version.kube_proxy.version
 
   tags = {
     Name = "${var.project_name}-kube-proxy"

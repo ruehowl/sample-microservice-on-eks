@@ -1,0 +1,8 @@
+# Overrides for document-service (dev)
+
+serviceAccount:
+  annotations:
+    "eks.amazonaws.com/role-arn": "arn:aws:iam::306024784101:role/document-service-app-sa-role"
+
+config:
+  storageBucket: "rahul-varghese-document-service-dev-storage"

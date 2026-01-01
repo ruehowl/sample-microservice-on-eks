@@ -58,9 +58,9 @@ resource "aws_cloudwatch_dashboard" "main" {
       {
         type = "log"
         properties = {
-          query   = "fields @timestamp, @message | stats count() by bin(5m)"
-          region  = var.aws_region
-          title   = "Application Log Volume"
+          query  = "fields @timestamp, @message | stats count() by bin(5m)"
+          region = var.aws_region
+          title  = "Application Log Volume"
           logGroupNames = [
             aws_cloudwatch_log_group.app.name
           ]
@@ -94,7 +94,7 @@ resource "aws_cloudwatch_metric_alarm" "alb_response_time" {
   namespace           = "AWS/ApplicationELB"
   period              = 300
   statistic           = "Average"
-  threshold           = 0.5  # 500ms
+  threshold           = 0.5 # 500ms
   alarm_description   = "Alert when ALB response time is high"
   treat_missing_data  = "notBreaching"
 

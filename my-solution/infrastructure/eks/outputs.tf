@@ -59,11 +59,6 @@ output "eks_node_role_arn" {
   value       = aws_iam_role.eks_node_role.arn
 }
 
-output "app_service_account_role_arn" {
-  description = "ARN of the application service account role (for IRSA)"
-  value       = aws_iam_role.app_service_account.arn
-}
-
 # OIDC Provider Outputs
 output "eks_oidc_provider_arn" {
   description = "ARN of the OIDC Provider for IRSA"

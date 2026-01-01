@@ -90,11 +90,11 @@ data "aws_subnet" "private_2" {
 
 # Local references to VPC resources
 locals {
-  vpc_id              = data.aws_vpc.main.id
-  public_subnet_1_id  = data.aws_subnet.public_1.id
-  public_subnet_2_id  = data.aws_subnet.public_2.id
-  private_subnet_1_id = data.aws_subnet.private_1.id
-  private_subnet_2_id = data.aws_subnet.private_2.id
+  vpc_id                = data.aws_vpc.main.id
+  public_subnet_1_id    = data.aws_subnet.public_1.id
+  public_subnet_2_id    = data.aws_subnet.public_2.id
+  private_subnet_1_id   = data.aws_subnet.private_1.id
+  private_subnet_2_id   = data.aws_subnet.private_2.id
   private_subnet_1_cidr = data.aws_subnet.private_1.cidr_block
   private_subnet_2_cidr = data.aws_subnet.private_2.cidr_block
 }

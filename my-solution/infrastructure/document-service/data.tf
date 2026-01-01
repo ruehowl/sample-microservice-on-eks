@@ -2,6 +2,9 @@
 # Refactored to use AWS data sources instead of terraform_remote_state
 # This eliminates dependency on state files and provides better decoupling
 
+# Get current AWS account ID (used for building ARNs)
+data "aws_caller_identity" "current" {}
+
 # Get VPC by tag
 data "aws_vpc" "main" {
   filter {
@@ -76,11 +79,14 @@ data "aws_security_group" "elasticache" {
 
 # Local references to infrastructure resources
 locals {
-  vpc_id              = data.aws_vpc.main.id
-  private_subnet_1_id = data.aws_subnet.private_1.id
-  private_subnet_2_id = data.aws_subnet.private_2.id
-  alb_arn_suffix      = data.aws_lb.main.arn_suffix
-  target_group_arn_suffix = data.aws_lb_target_group.app.arn_suffix
-  eks_cluster_name    = data.aws_eks_cluster.main.name
+  vpc_id                        = data.aws_vpc.main.id
+  private_subnet_1_id           = data.aws_subnet.private_1.id
+  private_subnet_2_id           = data.aws_subnet.private_2.id
+  alb_arn_suffix                = data.aws_lb.main.arn_suffix
+  target_group_arn_suffix       = data.aws_lb_target_group.app.arn_suffix
+  eks_cluster_name              = data.aws_eks_cluster.main.name
   elasticache_security_group_id = data.aws_security_group.elasticache.id
+
+  oidc_provider_hostpath = replace(data.aws_eks_cluster.main.identity[0].oidc[0].issuer, "https://", "")
+  oidc_provider_arn      = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/${local.oidc_provider_hostpath}"
 }
