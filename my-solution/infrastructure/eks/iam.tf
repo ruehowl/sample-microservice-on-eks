@@ -187,42 +187,94 @@ resource "aws_iam_role_policy" "alb_controller_policy" {
       {
         Effect = "Allow"
         Action = [
-          "elbv2:CreateLoadBalancer",
-          "elbv2:CreateTargetGroup",
-          "elbv2:CreateListener",
-          "elbv2:DeleteLoadBalancer",
-          "elbv2:DeleteTargetGroup",
-          "elbv2:DeleteListener",
-          "elbv2:DescribeLoadBalancers",
-          "elbv2:DescribeTargetGroups",
-          "elbv2:DescribeListeners",
-          "elbv2:ModifyLoadBalancerAttributes",
-          "elbv2:ModifyTargetGroup",
-          "elbv2:ModifyTargetGroupAttributes",
-          "elbv2:RegisterTargets",
-          "elbv2:DeregisterTargets",
-          "elbv2:DescribeTargetHealth"
-        ]
-        Resource = "*"
-      },
-      {
-        Effect = "Allow"
-        Action = [
-          "ec2:DescribeSecurityGroups",
+          "iam:CreateServiceLinkedRole",
+          "ec2:DescribeAccountAttributes",
+          "ec2:DescribeAddresses",
+          "ec2:DescribeAvailabilityZones",
+          "ec2:DescribeInternetGateways",
+          "ec2:DescribeVpcs",
+          "ec2:DescribeVpcPeeringConnections",
           "ec2:DescribeSubnets",
+          "ec2:DescribeSecurityGroups",
           "ec2:DescribeInstances",
+          "ec2:DescribeNetworkInterfaces",
+          "ec2:DescribeTags",
+          "ec2:GetCoipPoolUsage",
+          "ec2:DescribeCoipPools",
+          "ec2:CreateSecurityGroup",
+          "ec2:DeleteSecurityGroup",
           "ec2:AuthorizeSecurityGroupIngress",
-          "ec2:RevokeSecurityGroupIngress"
+          "ec2:RevokeSecurityGroupIngress",
+          "ec2:CreateTags",
+          "ec2:DeleteTags",
+          "elasticloadbalancing:DescribeLoadBalancers",
+          "elasticloadbalancing:DescribeLoadBalancerAttributes",
+          "elasticloadbalancing:DescribeListeners",
+          "elasticloadbalancing:DescribeListenerCertificates",
+          "elasticloadbalancing:DescribeSSLPolicies",
+          "elasticloadbalancing:DescribeRules",
+          "elasticloadbalancing:DescribeTargetGroups",
+          "elasticloadbalancing:DescribeTargetGroupAttributes",
+          "elasticloadbalancing:DescribeTargetHealth",
+          "elasticloadbalancing:DescribeTags",
+          "elasticloadbalancing:CreateLoadBalancer",
+          "elasticloadbalancing:CreateTargetGroup",
+          "elasticloadbalancing:CreateListener",
+          "elasticloadbalancing:DeleteListener",
+          "elasticloadbalancing:CreateRule",
+          "elasticloadbalancing:DeleteRule",
+          "elasticloadbalancing:ModifyLoadBalancerAttributes",
+          "elasticloadbalancing:SetIpAddressType",
+          "elasticloadbalancing:SetSecurityGroups",
+          "elasticloadbalancing:SetSubnets",
+          "elasticloadbalancing:DeleteLoadBalancer",
+          "elasticloadbalancing:ModifyTargetGroup",
+          "elasticloadbalancing:ModifyTargetGroupAttributes",
+          "elasticloadbalancing:DeleteTargetGroup",
+          "elasticloadbalancing:RegisterTargets",
+          "elasticloadbalancing:DeregisterTargets",
+          "elasticloadbalancing:ModifyListener",
+          "elasticloadbalancing:AddListenerCertificates",
+          "elasticloadbalancing:RemoveListenerCertificates",
+          "elasticloadbalancing:ModifyRule",
+          "elasticloadbalancing:SetWebAcl",
+          "elasticloadbalancing:CreateListener",
+          "elasticloadbalancing:CreateRule",
+          "elasticloadbalancing:CreateTargetGroup",
+          "elasticloadbalancing:AddTags",
+          "elasticloadbalancing:RemoveTags",
+          "cognito-idp:DescribeUserPoolClient",
+          "acm:ListCertificates",
+          "acm:DescribeCertificate",
+          "iam:ListServerCertificates",
+          "iam:GetServerCertificate",
+          "waf-regional:GetWebACL",
+          "waf-regional:GetWebACLForResource",
+          "waf-regional:AssociateWebACL",
+          "waf-regional:DisassociateWebACL",
+          "wafv2:GetWebACL",
+          "wafv2:GetWebACLForResource",
+          "wafv2:AssociateWebACL",
+          "wafv2:DisassociateWebACL",
+          "shield:GetSubscriptionState",
+          "shield:DescribeProtection",
+          "shield:CreateProtection",
+          "shield:DeleteProtection"
         ]
         Resource = "*"
       },
       {
         Effect = "Allow"
         Action = [
-          "elasticloadbalancing:DescribeLoadBalancers",
-          "elasticloadbalancing:DescribeTargetGroups"
+          "elasticloadbalancing:AddTags",
+          "elasticloadbalancing:RemoveTags"
         ]
-        Resource = "*"
+        Resource = [
+          "arn:aws:elasticloadbalancing:*:*:targetgroup/*/*",
+          "arn:aws:elasticloadbalancing:*:*:loadbalancer/*/*",
+          "arn:aws:elasticloadbalancing:*:*:listener/*/*/*",
+          "arn:aws:elasticloadbalancing:*:*:listener-rule/*/*/*"
+        ]
       }
     ]
   })

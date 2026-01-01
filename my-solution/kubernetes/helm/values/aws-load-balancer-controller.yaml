@@ -1,0 +1,12 @@
+# Values for installing AWS Load Balancer Controller via Helm (eks/aws-load-balancer-controller)
+# CI/CD overrides `clusterName`, `region`, `vpcId`, and IRSA role annotation at deploy time.
+
+clusterName: document-service-eks-cluster
+region: us-east-1
+vpcId: ""
+
+serviceAccount:
+  create: true
+  name: aws-load-balancer-controller
+  annotations:
+    "eks.amazonaws.com/role-arn": "arn:aws:iam::306024784101:role/alb-controller-role"

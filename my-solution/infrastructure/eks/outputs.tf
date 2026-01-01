@@ -70,6 +70,16 @@ output "eks_oidc_provider_url" {
   value       = aws_iam_openid_connect_provider.cluster.url
 }
 
+output "alb_controller_role_arn" {
+  description = "IAM role ARN assumed by the aws-load-balancer-controller service account (IRSA)"
+  value       = aws_iam_role.alb_controller_role.arn
+}
+
+output "vpc_id" {
+  description = "VPC ID where the EKS cluster runs"
+  value       = local.vpc_id
+}
+
 # Security Group Outputs
 output "alb_security_group_id" {
   description = "Security group ID for the ALB"
