@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   app:
+    image: ${APP_IMAGE:-document-service:latest}
     build:
       context: .
       dockerfile: Dockerfile
@@ -9,17 +10,26 @@ services:
       - "8000:8000"
     environment:
       - PORT=8000
-      - AWS_REGION=us-east-1
-      - STORAGE_TYPE=s3  # TODO: Change to dynamodb or rds if needed
-      - STORAGE_BUCKET=document-service-storage  # TODO: Set actual bucket name
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+      - STORAGE_TYPE=s3
+      - STORAGE_BUCKET=${STORAGE_BUCKET:-document-service-storage}
+      - S3_ENDPOINT_URL=${S3_ENDPOINT_URL:-http://localstack:4566}
+      - S3_KEY_PREFIX=${S3_KEY_PREFIX:-documents}
+      - S3_SSE=${S3_SSE:-AES256}
+      # LocalStack/dev credentials (override for real AWS)
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-test}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-test}
       - CACHE_HOST=redis
       - CACHE_PORT=6379
+      - CACHE_SSL=${CACHE_SSL:-false}
+      - CACHE_TTL_SECONDS=${CACHE_TTL_SECONDS:-3600}
     depends_on:
       - redis
+      - localstack
     # volumes:
     #   - ./:/app  # Uncomment for development
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/live"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -37,6 +47,40 @@ services:
       interval: 10s
       timeout: 3s
       retries: 3
+
+  localstack:
+    image: localstack/localstack:3
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=s3
+      - DEFAULT_REGION=${AWS_REGION:-us-east-1}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-test}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-test}
+    healthcheck:
+      test: ["CMD", "bash", "-lc", "curl -fsS http://localhost:4566/_localstack/health >/dev/null"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  localstack-init:
+    image: public.ecr.aws/aws-cli/aws-cli:latest
+    depends_on:
+      - localstack
+    environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-test}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-test}
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+    entrypoint: ["sh"]
+    command:
+      - "-c"
+      - >
+        until aws --endpoint-url=http://localstack:4566 s3api list-buckets >/dev/null 2>&1; do
+          echo "waiting for localstack";
+          sleep 1;
+        done;
+        aws --endpoint-url=http://localstack:4566 s3api create-bucket --bucket ${STORAGE_BUCKET:-document-service-storage} >/dev/null 2>&1 || true;
+        echo "bucket ready";
 
 volumes:
   redis-data:

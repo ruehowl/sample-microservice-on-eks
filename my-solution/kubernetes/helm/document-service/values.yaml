@@ -4,8 +4,8 @@
 replicaCount: 2
 
 image:
-  repository: # TODO: Set ECR repository URL
-  pullPolicy: Always
+  repository: document-service
+  pullPolicy: IfNotPresent
   tag: "latest"
 
 imagePullSecrets: []
@@ -82,4 +82,23 @@ config:
 
 # Secrets (reference AWS Secrets Manager or Kubernetes secrets)
 secrets: {}
+
+probes:
+  liveness:
+    path: /health/live
+    initialDelaySeconds: 20
+    periodSeconds: 10
+    timeoutSeconds: 3
+    failureThreshold: 3
+  readiness:
+    path: /health/ready
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 3
+  startup:
+    path: /health/live
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 30
 

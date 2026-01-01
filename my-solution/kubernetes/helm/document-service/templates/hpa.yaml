@@ -1,0 +1,24 @@
+{{- if .Values.autoscaling.enabled -}}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "document-service.fullname" . }}
+  labels:
+    {{- include "document-service.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "document-service.fullname" . }}
+  minReplicas: {{ .Values.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.autoscaling.maxReplicas }}
+  metrics:
+    {{- $metrics := list -}}
+    {{- if .Values.autoscaling.targetCPUUtilizationPercentage -}}
+    {{- $metrics = append $metrics (dict "type" "Resource" "resource" (dict "name" "cpu" "target" (dict "type" "Utilization" "averageUtilization" .Values.autoscaling.targetCPUUtilizationPercentage))) -}}
+    {{- end -}}
+    {{- if .Values.autoscaling.targetMemoryUtilizationPercentage -}}
+    {{- $metrics = append $metrics (dict "type" "Resource" "resource" (dict "name" "memory" "target" (dict "type" "Utilization" "averageUtilization" .Values.autoscaling.targetMemoryUtilizationPercentage))) -}}
+    {{- end -}}
+    {{- toYaml $metrics | nindent 4 }}
+{{- end }}
