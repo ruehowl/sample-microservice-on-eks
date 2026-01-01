@@ -72,7 +72,7 @@ output "eks_oidc_provider_url" {
 
 output "alb_controller_role_arn" {
   description = "IAM role ARN assumed by the aws-load-balancer-controller service account (IRSA)"
-  value       = aws_iam_role.alb_controller_role.arn
+  value       = module.aws_load_balancer_controller_irsa.iam_role_arn
 }
 
 output "vpc_id" {
