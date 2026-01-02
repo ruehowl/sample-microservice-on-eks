@@ -1,4 +1,4 @@
-# Overrides for document-service (dev)
+# Overrides for document-service
 
 replicaCount: 2
 
