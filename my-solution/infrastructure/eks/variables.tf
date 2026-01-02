@@ -60,17 +60,5 @@ variable "use_spot_instances" {
   type        = bool
   default     = false
 }
-
 # ALB / Application Ports (used by security groups)
-variable "alb_port" {
-  description = "Port for ALB listener"
-  type        = number
-  default     = 80
-}
-
-variable "app_port" {
-  description = "Port for application container"
-  type        = number
-  default     = 8000
-}
 

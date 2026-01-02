@@ -124,6 +124,7 @@ jobs:
   vpc-destroy:
     name: VPC - Terraform Destroy
     runs-on: ubuntu-latest
+    needs: [vpc-plan]
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'vpc-destroy'
     
     steps:
@@ -232,6 +233,7 @@ jobs:
   eks-destroy:
     name: EKS - Terraform Destroy
     runs-on: ubuntu-latest
+    needs: [eks-plan]
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'eks-destroy'
     
     steps:
@@ -340,6 +342,7 @@ jobs:
   github-cicd-destroy:
     name: GitHub CICD - Terraform Destroy
     runs-on: ubuntu-latest
+    needs: [github-cicd-plan]
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'github-cicd-destroy'
     
     steps:
@@ -448,6 +451,7 @@ jobs:
   document-service-destroy:
     name: Document Service - Terraform Destroy
     runs-on: ubuntu-latest
+    needs: [document-service-plan]
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'document-service-destroy'
     
     steps:

@@ -101,14 +101,7 @@ resource "aws_iam_role_policy" "cicd_eks_policy" {
           "eks:DescribeCluster",
           "eks:ListClusters"
         ]
-        Resource = local.eks_cluster_arn
-      },
-      {
-        Effect = "Allow"
-        Action = [
-          "sts:AssumeRole"
-        ]
-        Resource = local.app_service_account_arn
+        Resource = "*"
       }
     ]
   })

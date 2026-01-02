@@ -31,3 +31,4 @@ variable "elasticache_node_type" {
   default     = "cache.t3.micro"
 }
 
+
