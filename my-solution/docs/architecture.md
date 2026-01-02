@@ -111,6 +111,10 @@ Primary drivers:
 - ALB (internet-facing ingress)
 - ElastiCache
 - CloudWatch ingestion/retention
+Notes:
+- Spot instances are supported for EKS nodes to reduce compute costs.
+- CD is easy to deploy and destoy via GitHub Actions, allowing cost-free idle time.
+- 2 AZs are used as it is the recommended minimum for EKS clusters for cluster creation
 
 ## Implementation Notes / TODOs
 

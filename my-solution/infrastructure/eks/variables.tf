@@ -34,7 +34,7 @@ variable "kubernetes_version" {
 variable "node_group_desired_size" {
   description = "Desired number of worker nodes"
   type        = number
-  default     = 2
+  default     = 1
 }
 
 variable "node_group_min_size" {
@@ -46,7 +46,7 @@ variable "node_group_min_size" {
 variable "node_group_max_size" {
   description = "Maximum number of worker nodes"
   type        = number
-  default     = 3
+  default     = 2
 }
 
 variable "node_instance_types" {
@@ -58,7 +58,7 @@ variable "node_instance_types" {
 variable "use_spot_instances" {
   description = "Use Spot Instances for EKS nodes (saves ~70% on compute costs)"
   type        = bool
-  default     = false
+  default     = true
 }
 # ALB / Application Ports (used by security groups)
 
