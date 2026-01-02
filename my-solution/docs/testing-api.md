@@ -2,6 +2,8 @@
 
 This guide explains how to spin up the document service locally using `docker-compose`, interact with it, and validate the cache + storage integrations mocked in the starter code.
 
+For live (post-deploy) testing via the ALB/Ingress, see `my-solution/docs/testing-live-alb.md`.
+
 ## Prerequisites
 - Docker Desktop (v4.x or newer) with Compose v2 enabled.
 - Network access to pull Docker Hub images.
@@ -30,9 +32,10 @@ docker compose down -v
 ## 2. Verify Health
 Once containers report healthy, confirm the service responds:
 ```sh
-curl -s http://localhost:8000/health | jq
+curl -fsS http://localhost:8000/health/live
+curl -fsS http://localhost:8000/health/ready
 ```
-You should see JSON detailing overall status and component checks. If you do not have `jq`, omit the pipe.
+`/health/live` validates the process is up. `/health/ready` validates dependencies (S3 required; Redis optional).
 
 ## 3. Exercise API Endpoints
 ### Create or Update a Document
@@ -88,7 +91,13 @@ docker compose exec app /bin/sh
 ```
 From there you can run `pytest`, `ruff`, or other tooling once added to the image. Exit with `Ctrl+D` when done.
 
-## 7. Troubleshooting
+## 7. CI smoke tests (what gets validated)
+The GitHub Actions workflow `.github/workflows/deploy.yml` runs a smoke test that mirrors this local flow:
+- `docker compose up` (app + Redis + LocalStack)
+- calls `/health/live` and `/health/ready`
+- runs a basic PUT/GET document roundtrip
+
+## 8. Troubleshooting
 - If the health check fails, review container logs: `docker compose logs app` and `docker compose logs redis`.
 - Port conflicts on `8000` or `6379` require adjusting published ports in the compose file.
 - Rebuild the container after modifying Python dependencies to ensure they are included: `docker compose build app`.
