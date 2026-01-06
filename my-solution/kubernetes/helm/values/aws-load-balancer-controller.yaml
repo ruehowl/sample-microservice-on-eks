@@ -1,6 +1,6 @@
 clusterName: document-service-eks-cluster
 region: us-east-1
-vpcId: "vpc-04b375ef3a12eb4d4"
+vpcId: "vpc-02747cbde3b1b1663"
 
 serviceAccount:
   create: true
