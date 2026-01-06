@@ -20,6 +20,7 @@ ingress:
   annotations:
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/inbound-cidrs: "117.211.246.177/32"
   hosts:
     - host: document-service-dev.local
       paths:
