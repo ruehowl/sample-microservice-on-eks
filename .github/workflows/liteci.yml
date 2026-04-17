@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - master
+      - ip-restrict
     paths:
       - intent.yaml
       - lite-ci/compositions/**
@@ -15,6 +16,7 @@ on:
     branches:
       - main
       - master
+      - ip-restrict
     paths:
       - intent.yaml
       - lite-ci/compositions/**
