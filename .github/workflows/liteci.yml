@@ -1,0 +1,99 @@
+name: Lite CI
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - intent.yaml
+      - lite-ci/compositions/**
+      - my-solution/infrastructure/**
+      - my-solution/kubernetes/**
+      - .github/workflows/liteci.yml
+  pull_request:
+    branches:
+      - main
+      - master
+    paths:
+      - intent.yaml
+      - lite-ci/compositions/**
+      - my-solution/infrastructure/**
+      - my-solution/kubernetes/**
+      - .github/workflows/liteci.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  LITECI_VERSION: v0.3.0
+  LITECI_CONFIG_DIR: lite-ci/compositions
+
+jobs:
+  validate-and-plan:
+    name: Validate and Plan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Install liteci
+        run: |
+          go install github.com/sourceplane/liteci/cmd/liteci@${LITECI_VERSION}
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+
+      - name: Validate intent
+        run: liteci validate --intent intent.yaml
+
+      - name: Inspect changed components
+        if: github.event_name == 'pull_request'
+        run: |
+          liteci component \
+            --intent intent.yaml \
+            --changed \
+            --base origin/${{ github.base_ref }} \
+            --head HEAD \
+            --long
+
+      - name: Inspect all components
+        if: github.event_name != 'pull_request'
+        run: liteci component --intent intent.yaml --long
+
+      - name: Generate changed plan
+        if: github.event_name == 'pull_request'
+        run: |
+          mkdir -p .liteci
+          liteci plan \
+            --intent intent.yaml \
+            --config-dir "${LITECI_CONFIG_DIR}" \
+            --output .liteci/plan-pr.json \
+            --changed \
+            --base origin/${{ github.base_ref }} \
+            --head HEAD \
+            --view dag
+
+      - name: Generate full plan
+        if: github.event_name != 'pull_request'
+        run: |
+          mkdir -p .liteci
+          liteci plan \
+            --intent intent.yaml \
+            --config-dir "${LITECI_CONFIG_DIR}" \
+            --output .liteci/plan.json \
+            --view dag
+
+      - name: Upload liteci artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: liteci-artifacts
+          path: .liteci/*
+          if-no-files-found: error

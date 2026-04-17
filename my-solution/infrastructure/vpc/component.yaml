@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=../../../lite-ci/schemas/component.schema.yaml
+apiVersion: sourceplane.io/v1
+kind: Component
+
+metadata:
+  name: vpc
+
+spec:
+  type: terraform
+  domain: platform
+  subscribe:
+    environments:
+      - dev
+  labels:
+    team: platform
+    layer: network
+  dependsOn:
+    - component: github-cicd
+      environment: shared
+      scope: cross-environment
+      condition: success

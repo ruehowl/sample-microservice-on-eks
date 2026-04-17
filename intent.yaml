@@ -1,0 +1,54 @@
+# yaml-language-server: $schema=lite-ci/schemas/intent.schema.yaml
+apiVersion: sourceplane.io/v1
+kind: Intent
+
+metadata:
+  name: sample-microservice-on-eks
+  description: Plan the sample EKS document service with discovered component manifests
+  namespace: default
+
+discovery:
+  roots:
+    - my-solution/infrastructure
+    - my-solution/kubernetes
+
+groups:
+  shared:
+    policies:
+      requireApproval: "false"
+    defaults:
+      workspace: shared
+      autoApprove: "false"
+      parallelism: 5
+
+  platform:
+    policies:
+      requireApproval: "true"
+    defaults:
+      workspace: "{{.environment}}"
+      autoApprove: "false"
+      parallelism: 10
+
+  delivery:
+    policies:
+      requireApproval: "true"
+    defaults:
+      namespace: default
+      releaseName: document-service
+      timeout: 15m
+
+environments:
+  shared:
+    selectors:
+      domains:
+        - shared
+    defaults:
+      workspace: shared
+
+  dev:
+    selectors:
+      domains:
+        - platform
+        - delivery
+    defaults:
+      workspace: dev

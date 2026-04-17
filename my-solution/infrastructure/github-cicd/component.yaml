@@ -1,0 +1,16 @@
+# yaml-language-server: $schema=../../../lite-ci/schemas/component.schema.yaml
+apiVersion: sourceplane.io/v1
+kind: Component
+
+metadata:
+  name: github-cicd
+
+spec:
+  type: terraform
+  domain: shared
+  subscribe:
+    environments:
+      - shared
+  labels:
+    team: platform
+    layer: bootstrap

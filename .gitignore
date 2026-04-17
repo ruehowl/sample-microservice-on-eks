@@ -132,6 +132,8 @@ temp/
 *.old
 *.orig
 *.save
+.liteci/
+liteci-plan*.json
 
 # ============================================
 # Build & Output Files

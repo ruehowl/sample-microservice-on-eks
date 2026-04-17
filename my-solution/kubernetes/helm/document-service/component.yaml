@@ -1,0 +1,27 @@
+# yaml-language-server: $schema=../../../../lite-ci/schemas/component.schema.yaml
+apiVersion: sourceplane.io/v1
+kind: Component
+
+metadata:
+  name: document-service-deploy
+
+spec:
+  type: helm
+  domain: delivery
+  path: my-solution/kubernetes/helm
+  subscribe:
+    environments:
+      - dev
+  inputs:
+    chart: document-service
+    valuesFile: values/document-service-dev.yaml
+    releaseName: document-service
+    namespace: default
+    timeout: 15m
+  labels:
+    team: platform
+    layer: application
+  dependsOn:
+    - component: document-service-infra
+      scope: same-environment
+      condition: success

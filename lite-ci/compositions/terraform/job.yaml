@@ -1,0 +1,92 @@
+apiVersion: sourceplane.io/v1
+kind: JobRegistry
+metadata:
+  name: terraform-jobs
+  description: Terraform jobs tailored for the sample EKS repository
+jobs:
+  - name: plan
+    description: Initialize, validate, and plan a Terraform module
+    runsOn: ubuntu-22.04
+    timeout: 20m
+    retries: 1
+    labels:
+      scope: analysis
+    steps:
+      - name: init
+        run: terraform init -backend=true
+        onFailure: stop
+      - name: workspace-select
+        run: terraform workspace select {{.workspace}} || terraform workspace new {{.workspace}}
+        onFailure: stop
+      - name: fmt-check
+        run: terraform fmt -check -recursive
+        onFailure: continue
+      - name: validate
+        run: terraform validate -no-color
+        timeout: 5m
+        onFailure: stop
+      - name: plan
+        run: terraform plan -no-color -out=tfplan -parallelism={{.parallelism}}
+        timeout: 15m
+        onFailure: stop
+    inputs:
+      workspace: default
+      autoApprove: "false"
+      parallelism: 10
+
+  - name: apply
+    description: Apply a Terraform module
+    runsOn: ubuntu-22.04
+    timeout: 30m
+    retries: 1
+    labels:
+      scope: deployment
+    steps:
+      - name: init
+        run: terraform init -backend=true
+        onFailure: stop
+      - name: workspace-select
+        run: terraform workspace select {{.workspace}} || terraform workspace new {{.workspace}}
+        onFailure: stop
+      - name: validate
+        run: terraform validate -no-color
+        timeout: 5m
+        onFailure: stop
+      - name: plan
+        run: terraform plan -no-color -out=tfplan -parallelism={{.parallelism}}
+        timeout: 15m
+        onFailure: stop
+      - name: apply
+        run: terraform apply -no-color -auto-approve tfplan
+        timeout: 20m
+        onFailure: stop
+      - name: output
+        run: terraform output -json > outputs.json
+        onFailure: continue
+    inputs:
+      workspace: default
+      autoApprove: "false"
+      parallelism: 10
+
+  - name: destroy
+    description: Destroy a Terraform module
+    runsOn: ubuntu-22.04
+    timeout: 25m
+    retries: 0
+    labels:
+      scope: cleanup
+    steps:
+      - name: init
+        run: terraform init -backend=true
+        onFailure: stop
+      - name: workspace-select
+        run: terraform workspace select {{.workspace}} || terraform workspace new {{.workspace}}
+        onFailure: stop
+      - name: destroy
+        run: terraform destroy -no-color -auto-approve -parallelism={{.parallelism}}
+        timeout: 20m
+        onFailure: stop
+    inputs:
+      workspace: default
+      autoApprove: "false"
+      parallelism: 10
