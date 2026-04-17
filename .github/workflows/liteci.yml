@@ -31,7 +31,7 @@ permissions:
 env:
   LITECI_VERSION: v0.3.0
   LITECI_CONFIG_DIR: lite-ci/compositions
-  LITECI_IMAGE: ghcr.io/sourceplane/lite-ci:v0.3.0
+  LITECI_REF: ghcr.io/sourceplane/lite-ci:v0.3.0
 
 jobs:
   validate-and-plan:
@@ -44,6 +44,24 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Set up ORAS
+        uses: oras-project/setup-oras@v1
+
+      - name: Install liteci
+        run: |
+          rm -rf .liteci-provider
+          mkdir -p .liteci-provider
+          oras pull "$LITECI_REF" -o .liteci-provider
+          archive="$(find .liteci-provider -type f -name '*linux_amd64*' | head -n 1)"
+          if [ -z "$archive" ]; then
+            echo "failed to locate linux amd64 liteci archive" >&2
+            find .liteci-provider -maxdepth 3 -type f >&2 || true
+            exit 1
+          fi
+          tar -xzf "$archive" -C .liteci-provider
+          chmod +x .liteci-provider/entrypoint
+          echo "$PWD/.liteci-provider" >> "$GITHUB_PATH"
+
       - name: Compute changed files
         if: github.event_name == 'pull_request'
         id: changed-files
@@ -52,21 +70,12 @@ jobs:
           echo "files=${changed_files}" >> "$GITHUB_OUTPUT"
 
       - name: Validate intent
-        run: |
-          docker run --rm \
-            -v "$PWD:/workspace" \
-            -w /workspace \
-            "$LITECI_IMAGE" \
-            validate --intent intent.yaml
+        run: entrypoint validate --intent intent.yaml
 
       - name: Inspect changed components
         if: github.event_name == 'pull_request' && steps.changed-files.outputs.files != ''
         run: |
-          docker run --rm \
-            -v "$PWD:/workspace" \
-            -w /workspace \
-            "$LITECI_IMAGE" \
-            component \
+          entrypoint component \
             --intent intent.yaml \
             --changed \
             --files "${{ steps.changed-files.outputs.files }}" \
@@ -74,22 +83,13 @@ jobs:
 
       - name: Inspect all components
         if: github.event_name != 'pull_request' || steps.changed-files.outputs.files == ''
-        run: |
-          docker run --rm \
-            -v "$PWD:/workspace" \
-            -w /workspace \
-            "$LITECI_IMAGE" \
-            component --intent intent.yaml --long
+        run: entrypoint component --intent intent.yaml --long
 
       - name: Generate changed plan
         if: github.event_name == 'pull_request' && steps.changed-files.outputs.files != ''
         run: |
           mkdir -p .liteci
-          docker run --rm \
-            -v "$PWD:/workspace" \
-            -w /workspace \
-            "$LITECI_IMAGE" \
-            plan \
+          entrypoint plan \
             --intent intent.yaml \
             --config-dir "${LITECI_CONFIG_DIR}" \
             --output .liteci/plan-pr.json \
@@ -101,11 +101,7 @@ jobs:
         if: github.event_name != 'pull_request' || steps.changed-files.outputs.files == ''
         run: |
           mkdir -p .liteci
-          docker run --rm \
-            -v "$PWD:/workspace" \
-            -w /workspace \
-            "$LITECI_IMAGE" \
-            plan \
+          entrypoint plan \
             --intent intent.yaml \
             --config-dir "${LITECI_CONFIG_DIR}" \
             --output .liteci/plan.json \
