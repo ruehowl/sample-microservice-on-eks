@@ -52,15 +52,14 @@ jobs:
           rm -rf .liteci-provider
           mkdir -p .liteci-provider
           oras pull "$LITECI_REF" -o .liteci-provider
-          archive="$(find .liteci-provider -type f -name '*linux_amd64*' | head -n 1)"
-          if [ -z "$archive" ]; then
-            echo "failed to locate linux amd64 liteci archive" >&2
+          binary=".liteci-provider/bin/linux/amd64/entrypoint"
+          if [ ! -f "$binary" ]; then
+            echo "failed to locate linux amd64 liteci binary" >&2
             find .liteci-provider -maxdepth 3 -type f >&2 || true
             exit 1
           fi
-          tar -xzf "$archive" -C .liteci-provider
-          chmod +x .liteci-provider/entrypoint
-          echo "$PWD/.liteci-provider" >> "$GITHUB_PATH"
+          chmod +x "$binary"
+          echo "$PWD/.liteci-provider/bin/linux/amd64" >> "$GITHUB_PATH"
 
       - name: Compute changed files
         if: github.event_name == 'pull_request'
