@@ -31,6 +31,7 @@ permissions:
 env:
   LITECI_VERSION: v0.3.0
   LITECI_CONFIG_DIR: lite-ci/compositions
+  LITECI_IMAGE: ghcr.io/sourceplane/lite-ci:v0.3.0
 
 jobs:
   validate-and-plan:
@@ -43,51 +44,68 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.21'
-
-      - name: Install liteci
+      - name: Compute changed files
+        if: github.event_name == 'pull_request'
+        id: changed-files
         run: |
-          go install github.com/sourceplane/liteci/cmd/liteci@${LITECI_VERSION}
-          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+          changed_files="$(git diff --name-only "origin/${{ github.base_ref }}...HEAD" | paste -sd, -)"
+          echo "files=${changed_files}" >> "$GITHUB_OUTPUT"
 
       - name: Validate intent
-        run: liteci validate --intent intent.yaml
+        run: |
+          docker run --rm \
+            -v "$PWD:/workspace" \
+            -w /workspace \
+            "$LITECI_IMAGE" \
+            validate --intent intent.yaml
 
       - name: Inspect changed components
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && steps.changed-files.outputs.files != ''
         run: |
-          liteci component \
+          docker run --rm \
+            -v "$PWD:/workspace" \
+            -w /workspace \
+            "$LITECI_IMAGE" \
+            component \
             --intent intent.yaml \
             --changed \
-            --base origin/${{ github.base_ref }} \
-            --head HEAD \
+            --files "${{ steps.changed-files.outputs.files }}" \
             --long
 
       - name: Inspect all components
-        if: github.event_name != 'pull_request'
-        run: liteci component --intent intent.yaml --long
+        if: github.event_name != 'pull_request' || steps.changed-files.outputs.files == ''
+        run: |
+          docker run --rm \
+            -v "$PWD:/workspace" \
+            -w /workspace \
+            "$LITECI_IMAGE" \
+            component --intent intent.yaml --long
 
       - name: Generate changed plan
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && steps.changed-files.outputs.files != ''
         run: |
           mkdir -p .liteci
-          liteci plan \
+          docker run --rm \
+            -v "$PWD:/workspace" \
+            -w /workspace \
+            "$LITECI_IMAGE" \
+            plan \
             --intent intent.yaml \
             --config-dir "${LITECI_CONFIG_DIR}" \
             --output .liteci/plan-pr.json \
             --changed \
-            --base origin/${{ github.base_ref }} \
-            --head HEAD \
+            --files "${{ steps.changed-files.outputs.files }}" \
             --view dag
 
       - name: Generate full plan
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' || steps.changed-files.outputs.files == ''
         run: |
           mkdir -p .liteci
-          liteci plan \
+          docker run --rm \
+            -v "$PWD:/workspace" \
+            -w /workspace \
+            "$LITECI_IMAGE" \
+            plan \
             --intent intent.yaml \
             --config-dir "${LITECI_CONFIG_DIR}" \
             --output .liteci/plan.json \
