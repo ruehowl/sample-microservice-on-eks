@@ -1,0 +1,115 @@
+name: Lite CI
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - ip-restrict
+    paths:
+      - intent.yaml
+      - lite-ci/compositions/**
+      - my-solution/infrastructure/**
+      - my-solution/kubernetes/**
+      - .github/workflows/liteci.yml
+  pull_request:
+    branches:
+      - main
+      - master
+      - ip-restrict
+    paths:
+      - intent.yaml
+      - lite-ci/compositions/**
+      - my-solution/infrastructure/**
+      - my-solution/kubernetes/**
+      - .github/workflows/liteci.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  LITECI_VERSION: v0.3.0
+  LITECI_CONFIG_DIR: lite-ci/compositions
+  LITECI_REF: ghcr.io/sourceplane/lite-ci:v0.3.0
+
+jobs:
+  validate-and-plan:
+    name: Validate and Plan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up ORAS
+        uses: oras-project/setup-oras@v1
+
+      - name: Install liteci
+        run: |
+          rm -rf .liteci-provider
+          mkdir -p .liteci-provider
+          oras pull "$LITECI_REF" -o .liteci-provider
+          binary=".liteci-provider/bin/linux/amd64/entrypoint"
+          if [ ! -f "$binary" ]; then
+            echo "failed to locate linux amd64 liteci binary" >&2
+            find .liteci-provider -maxdepth 3 -type f >&2 || true
+            exit 1
+          fi
+          chmod +x "$binary"
+          echo "$PWD/.liteci-provider/bin/linux/amd64" >> "$GITHUB_PATH"
+
+      - name: Compute changed files
+        if: github.event_name == 'pull_request'
+        id: changed-files
+        run: |
+          changed_files="$(git diff --name-only "origin/${{ github.base_ref }}...HEAD" | paste -sd, -)"
+          echo "files=${changed_files}" >> "$GITHUB_OUTPUT"
+
+      - name: Validate intent
+        run: entrypoint validate --intent intent.yaml
+
+      - name: Inspect changed components
+        if: github.event_name == 'pull_request' && steps.changed-files.outputs.files != ''
+        run: |
+          entrypoint component \
+            --intent intent.yaml \
+            --changed \
+            --files "${{ steps.changed-files.outputs.files }}" \
+            --long
+
+      - name: Inspect all components
+        if: github.event_name != 'pull_request' || steps.changed-files.outputs.files == ''
+        run: entrypoint component --intent intent.yaml --long
+
+      - name: Generate changed plan
+        if: github.event_name == 'pull_request' && steps.changed-files.outputs.files != ''
+        run: |
+          mkdir -p .liteci
+          entrypoint plan \
+            --intent intent.yaml \
+            --config-dir "${LITECI_CONFIG_DIR}" \
+            --output .liteci/plan-pr.json \
+            --changed \
+            --files "${{ steps.changed-files.outputs.files }}" \
+            --view dag
+
+      - name: Generate full plan
+        if: github.event_name != 'pull_request' || steps.changed-files.outputs.files == ''
+        run: |
+          mkdir -p .liteci
+          entrypoint plan \
+            --intent intent.yaml \
+            --config-dir "${LITECI_CONFIG_DIR}" \
+            --output .liteci/plan.json \
+            --view dag
+
+      - name: Upload liteci artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: liteci-artifacts
+          path: .liteci/*
+          if-no-files-found: error
+          include-hidden-files: true

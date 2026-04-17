@@ -1,0 +1,70 @@
+apiVersion: sourceplane.io/v1
+kind: JobRegistry
+metadata:
+  name: helm-jobs
+  description: Helm jobs tailored for the sample EKS repository
+jobs:
+  - name: deploy
+    description: Lint, render, and deploy a Helm release
+    runsOn: ubuntu-22.04
+    timeout: 20m
+    retries: 1
+    labels:
+      scope: deployment
+    steps:
+      - name: lint
+        phase: pre
+        order: 10
+        run: helm lint {{.chart}} -f {{.valuesFile}}
+        timeout: 5m
+        onFailure: stop
+      - name: template
+        phase: pre
+        order: 20
+        run: helm template {{.releaseName}} {{.chart}} -f {{.valuesFile}} > /tmp/{{.Component}}-{{.Environment}}.yaml && test -s /tmp/{{.Component}}-{{.Environment}}.yaml
+        timeout: 5m
+        onFailure: stop
+      - name: deploy
+        phase: main
+        order: 30
+        run: helm upgrade --install {{.releaseName}} {{.chart}} -f {{.valuesFile}} --namespace {{.namespace}} --create-namespace --wait --timeout={{.timeout}}
+        timeout: 15m
+        onFailure: stop
+      - name: verify
+        phase: post
+        order: 10
+        run: kubectl rollout status deployment/{{.releaseName}} -n {{.namespace}} --timeout=180s
+        onFailure: continue
+    inputs:
+      chart: .
+      valuesFile: values.yaml
+      releaseName: app
+      namespace: default
+      timeout: 15m
+
+  - name: diff
+    description: Render a Helm release without applying it
+    runsOn: ubuntu-22.04
+    timeout: 10m
+    retries: 0
+    labels:
+      scope: analysis
+    steps:
+      - name: lint
+        phase: pre
+        order: 10
+        run: helm lint {{.chart}} -f {{.valuesFile}}
+        timeout: 5m
+        onFailure: stop
+      - name: template
+        phase: main
+        order: 20
+        run: helm template {{.releaseName}} {{.chart}} -f {{.valuesFile}}
+        timeout: 5m
+        onFailure: stop
+    inputs:
+      chart: .
+      valuesFile: values.yaml
+      releaseName: app
+      namespace: default
+      timeout: 15m

@@ -9,12 +9,14 @@ on:
     branches:
       - main
       - master
+      - ip-restrict
     paths:
       - 'my-solution/infrastructure/**'
   pull_request:
     branches:
       - main
       - master
+      - ip-restrict
     paths:
       - 'my-solution/infrastructure/**'
   workflow_dispatch:

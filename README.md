@@ -87,6 +87,23 @@ your-solution/
     └── troubleshooting.md  # Troubleshooting guide
 ```
 
+## Lite CI Example
+
+This repository now includes a `liteci` intent that discovers `component.yaml` manifests from the Terraform modules and Helm deployment under `my-solution/`.
+
+Pinned version: `liteci v0.3.0`
+
+Local workflow:
+
+```bash
+go install github.com/sourceplane/liteci/cmd/liteci@v0.3.0
+liteci validate --intent intent.yaml
+liteci component --intent intent.yaml --long
+liteci plan --intent intent.yaml --config-dir lite-ci/compositions --output .liteci/plan.json --view dag
+```
+
+The PR workflow at `.github/workflows/liteci.yml` also uses `v0.3.0` and generates a changed-only plan when a pull request touches the infrastructure, Helm, intent, or component manifests.
+
 ## Requirements
 
 See [assessment/requirements.md](assessment/requirements.md) for detailed requirements covering:
